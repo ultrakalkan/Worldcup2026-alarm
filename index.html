@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScoreClock 2026</title>
+<link rel="icon" href="assets/trophy.png">
+<style>
+  :root{
+    --bg:#05070d;
+    --panel:#0b111c;
+    --panel-2:#0e1626;
+    --cyan:#22e6ff;
+    --gold:#ffcf40;
+    --pink:#ff2e88;
+    --green:#39ff88;
+    --text:#eef4ff;
+    --muted:#7c8aa3;
+    --border-glow-speed: 6s;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(34,230,255,.10), transparent 60%),
+      radial-gradient(1000px 500px at 90% 110%, rgba(255,46,136,.10), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family: 'Segoe UI', ui-sans-serif, system-ui, -apple-system, Arial, sans-serif;
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 28px 16px 60px;
+    overflow-x:hidden;
+  }
+
+  /* ---------- HERO STRIP ---------- */
+  .hero{
+    width:100%;
+    max-width:920px;
+    height:120px;
+    border-radius:18px;
+    background-image:
+      linear-gradient(180deg, rgba(5,7,13,.55), rgba(5,7,13,.85)),
+      url('assets/hero-bg.png');
+    background-size:cover;
+    background-position:center 60%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:22px;
+    border:1px solid rgba(255,255,255,.06);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero h1{
+    font-size:1.4rem;
+    letter-spacing:.35em;
+    text-transform:uppercase;
+    color:var(--gold);
+    text-shadow:0 0 18px rgba(255,207,64,.5);
+    font-weight:800;
+  }
+  .hero span{color:var(--cyan); text-shadow:0 0 18px rgba(34,230,255,.5);}
+
+  /* ---------- MAIN CLOCK CARD ---------- */
+  .device{
+    position:relative;
+    width:100%;
+    max-width:920px;
+    border-radius:34px;
+    padding:4px;
+    background: conic-gradient(from var(--ang,0deg),
+      var(--cyan), var(--pink), var(--gold), var(--green), var(--cyan));
+    animation: spin var(--border-glow-speed) linear infinite;
+    box-shadow: 0 0 60px -10px rgba(34,230,255,.25);
+  }
+  @property --ang{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
+  @keyframes spin{ to{ --ang:360deg; } }
+
+  .screen{
+    background: linear-gradient(160deg, var(--panel), var(--panel-2));
+    border-radius: 30px;
+    padding: 26px 26px 20px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .top-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .pill{
+    background:#f2f5fa;
+    color:#0b111c;
+    border-radius:14px;
+    padding:8px 16px;
+    text-align:center;
+    min-width:150px;
+  }
+  .pill .top{font-size:.68rem; font-weight:700; letter-spacing:.08em; color:#3a4a63;}
+  .pill .bottom{font-size:1.05rem; font-weight:800;}
+  .pill.weather{display:flex; align-items:center; gap:10px; justify-content:center; min-width:150px;}
+  .pill.weather .emoji{font-size:1.4rem;}
+
+  .brand{
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    flex:1;
+    min-width:160px;
+  }
+  .brand img{width:64px; height:auto; filter: drop-shadow(0 0 14px rgba(255,207,64,.55));}
+  .brand .name{
+    font-weight:800;
+    letter-spacing:.25em;
+    font-size:.78rem;
+    color:var(--muted);
+    margin-top:2px;
+  }
+
+  .clock-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    margin: 26px 0 10px;
+    flex-wrap:wrap;
+  }
+  .ring{
+    width:96px; height:96px;
+    border-radius:50%;
+    border:2px dashed var(--cyan);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color:var(--cyan);
+    flex-shrink:0;
+  }
+  .ring .num{font-size:1.6rem; font-weight:800;}
+  .ring .lbl{font-size:.6rem; letter-spacing:.1em; color:var(--muted); margin-top:2px;}
+  .ring.ampm{border-color:var(--gold); color:var(--gold);}
+
+  .digits{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .digit-box{
+    background: linear-gradient(180deg, #35f2ff, #12c4dd);
+    color:#04212a;
+    border-radius:18px;
+    padding: 10px 22px;
+    font-size: clamp(3rem, 11vw, 5.2rem);
+    font-weight:900;
+    font-variant-numeric: tabular-nums;
+    letter-spacing:2px;
+    box-shadow: inset 0 -6px 0 rgba(0,0,0,.15), 0 0 30px rgba(34,230,255,.35);
+    transition: transform .15s ease;
+  }
+  .colon{
+    font-size: clamp(2rem, 7vw, 3.4rem);
+    font-weight:900;
+    color:var(--cyan);
+    opacity:.85;
+  }
+
+  .status-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top: 18px;
+    border-top:1px solid rgba(255,255,255,.08);
+    padding-top:16px;
+    font-size:.95rem;
+    color:var(--text);
+  }
+  .status-item{display:flex; align-items:center; gap:8px; color:var(--text);}
+  .status-item .ic{font-size:1.1rem;}
+  .status-item.battery-good{color:var(--green);}
+  .status-item.battery-low{color:var(--pink);}
+
+  /* ---------- GOAL ANIMATION OVERLAY ---------- */
+  .goal-overlay{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    pointer-events:none;
+    opacity:0;
+    z-index:5;
+  }
+  .goal-overlay.show{ animation: goalpop 1.4s ease forwards; }
+  @keyframes goalpop{
+    0%{opacity:0; transform:scale(.6);}
+    15%{opacity:1; transform:scale(1.08);}
+    30%{opacity:1; transform:scale(1);}
+    75%{opacity:1;}
+    100%{opacity:0; transform:scale(1.15);}
+  }
+  .goal-overlay .ball{
+    width:120px; height:120px;
+    animation: spinball 1s linear infinite;
+    filter: drop-shadow(0 0 30px rgba(34,230,255,.8));
+  }
+  @keyframes spinball{ from{transform:rotate(0);} to{transform:rotate(360deg);} }
+  .goal-overlay .text{
+    position:absolute;
+    font-size: clamp(2.4rem, 9vw, 4.5rem);
+    font-weight:900;
+    letter-spacing:.1em;
+    color:var(--gold);
+    text-shadow: 0 0 24px rgba(255,207,64,.9), 0 0 60px rgba(255,207,64,.5);
+    top: 55%;
+  }
+
+  /* ---------- CONTROLS ---------- */
+  .panel{
+    width:100%; max-width:920px;
+    margin-top:22px;
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:22px;
+    padding:20px;
+  }
+  .panel h2{
+    font-size:.85rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:14px;
+  }
+
+  .themes{display:flex; gap:12px; flex-wrap:wrap;}
+  .theme-btn{
+    border:2px solid transparent;
+    border-radius:14px;
+    padding:6px;
+    cursor:pointer;
+    background:#0e1626;
+    display:flex; align-items:center; gap:6px;
+  }
+  .theme-btn.active{border-color:var(--cyan);}
+  .swatch{width:18px; height:18px; border-radius:6px;}
+
+  .alarm-form{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px;
+  }
+  .alarm-form input[type=time]{
+    background:#0e1626; border:1px solid rgba(255,255,255,.1);
+    color:var(--text); padding:10px 12px; border-radius:10px; font-size:1rem;
+  }
+  .alarm-form input[type=text]{
+    background:#0e1626; border:1px solid rgba(255,255,255,.1);
+    color:var(--text); padding:10px 12px; border-radius:10px; font-size:.95rem; flex:1; min-width:140px;
+  }
+  .btn{
+    background: linear-gradient(135deg, var(--cyan), #12a6c4);
+    color:#04212a; font-weight:800; border:none;
+    padding:10px 18px; border-radius:10px; cursor:pointer; font-size:.95rem;
+  }
+  .btn:hover{filter:brightness(1.1);}
+  .btn.danger{background:linear-gradient(135deg,var(--pink),#c21e63); color:#2a0414;}
+
+  .alarm-list{display:flex; flex-direction:column; gap:10px;}
+  .alarm-item{
+    display:flex; justify-content:space-between; align-items:center;
+    background:#0e1626; border-radius:12px; padding:12px 16px;
+    border:1px solid rgba(255,255,255,.06);
+  }
+  .alarm-item.disabled{opacity:.4;}
+  .alarm-time{font-size:1.3rem; font-weight:800; font-variant-numeric:tabular-nums;}
+  .alarm-label{font-size:.8rem; color:var(--muted);}
+  .alarm-actions{display:flex; gap:8px; align-items:center;}
+  .toggle{
+    width:44px; height:24px; border-radius:20px; background:#333; position:relative; cursor:pointer; border:none;
+  }
+  .toggle.on{background:var(--green);}
+  .toggle .knob{
+    width:18px; height:18px; border-radius:50%; background:#fff; position:absolute; top:3px; left:3px;
+    transition:.2s;
+  }
+  .toggle.on .knob{left:23px;}
+  .icon-btn{
+    background:none; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer;
+  }
+  .icon-btn:hover{color:var(--pink);}
+
+  .settings-row{display:flex; gap:24px; flex-wrap:wrap; margin-top:6px;}
+  .setting{display:flex; flex-direction:column; gap:6px;}
+  .setting label{font-size:.75rem; color:var(--muted); letter-spacing:.05em;}
+  .setting select, .setting input[type=range]{
+    background:#0e1626; color:var(--text); border:1px solid rgba(255,255,255,.1);
+    border-radius:8px; padding:8px 10px;
+  }
+
+  .ringing-overlay{
+    position:fixed; inset:0; background:rgba(5,7,13,.92);
+    display:none; align-items:center; justify-content:center; flex-direction:column;
+    z-index:50; gap:20px; text-align:center; padding:20px;
+  }
+  .ringing-overlay.show{display:flex;}
+  .ringing-overlay img{width:100px; animation: spinball 1s linear infinite;}
+  .ringing-overlay h2{font-size:2.2rem; color:var(--gold);}
+  .ringing-overlay p{color:var(--muted); font-size:1.1rem;}
+
+  footer{color:var(--muted); font-size:.75rem; margin-top:26px; text-align:center;}
+
+  @media (max-width:520px){
+    .digit-box{padding:8px 14px;}
+    .ring{width:78px; height:78px;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="hero">
+    <h1>SCORE<span>CLOCK</span> 2026</h1>
+  </div>
+
+  <div class="device">
+    <div class="screen">
+
+      <div class="goal-overlay" id="goalOverlay">
+        <img class="ball" src="assets/ball.png" alt="gol">
+        <div class="text">GOOL!</div>
+      </div>
+
+      <div class="top-row">
+        <div class="pill">
+          <div class="top" id="dayName">—</div>
+          <div class="bottom" id="dateStr">—</div>
+        </div>
+
+        <div class="brand">
+          <img src="assets/trophy.png" alt="FIFA Dünya Kupası 2026">
+          <div class="name">SCORECLOCK 2026</div>
+        </div>
+
+        <div class="pill weather">
+          <span class="emoji" id="weatherEmoji">🌤️</span>
+          <div>
+            <div class="top" id="weatherDesc">—</div>
+            <div class="bottom" id="weatherTemp">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clock-row">
+        <div class="ring">
+          <div class="num" id="secNum">00</div>
+          <div class="lbl">SANİYE</div>
+        </div>
+
+        <div class="digits">
+          <div class="digit-box" id="hourBox">00</div>
+          <div class="colon">:</div>
+          <div class="digit-box" id="minBox">00</div>
+        </div>
+
+        <div class="ring ampm">
+          <div class="num" id="ampmNum">AM</div>
+          <div class="lbl" id="ampmLbl">—</div>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <div class="status-item" id="batteryItem"><span class="ic">🔋</span><span id="batteryTxt">—</span></div>
+        <div class="status-item"><span class="ic">💨</span><span id="windTxt">—</span></div>
+        <div class="status-item"><span class="ic">📍</span><span>KONYA</span></div>
+        <div class="status-item"><span class="ic">📶</span><span id="netTxt">Wi-Fi</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Renk Temaları</h2>
+    <div class="themes" id="themeButtons"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Alarm & Hatırlatıcı</h2>
+    <div class="alarm-form">
+      <input type="time" id="alarmTimeInput">
+      <input type="text" id="alarmLabelInput" placeholder="Etiket (örn. Maça Uyan)">
+      <button class="btn" id="addAlarmBtn">Alarm Ekle</button>
+    </div>
+    <div class="alarm-list" id="alarmList"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Ayarlar</h2>
+    <div class="settings-row">
+      <div class="setting">
+        <label>SAAT FORMATI</label>
+        <select id="formatSelect">
+          <option value="24">24 Saat</option>
+          <option value="12">12 Saat</option>
+        </select>
+      </div>
+      <div class="setting">
+        <label>EKRAN MODU</label>
+        <select id="modeSelect">
+          <option value="normal">Normal</option>
+          <option value="night">Gece Modu</option>
+          <option value="minimal">Minimal Mod</option>
+        </select>
+      </div>
+      <div class="setting">
+        <label>PARLAKLIK</label>
+        <input type="range" id="brightnessRange" min="40" max="100" value="100">
+      </div>
+    </div>
+  </div>
+
+  <footer>ScoreClock 2026 · Konya için hazırlandı ⚽</footer>
+
+  <div class="ringing-overlay" id="ringOverlay">
+    <img src="assets/ball.png" alt="alarm">
+    <h2 id="ringTitle">ALARM ÇALIYOR</h2>
+    <p id="ringLabel">—</p>
+    <button class="btn" id="stopAlarmBtn" style="font-size:1.1rem; padding:14px 34px;">Durdur</button>
+  </div>
+
+<script>
+/* ================= THEMES ================= */
+const THEMES = [
+  { id:'cyan',  label:'Gündüz', cyan:'#22e6ff', pink:'#ff2e88', gold:'#ffcf40', green:'#39ff88' },
+  { id:'rose',  label:'Bulutlu', cyan:'#ff6fa5', pink:'#7b5cff', gold:'#ffb85c', green:'#39ff88' },
+  { id:'amber', label:'Yağmurlu', cyan:'#ffd23f', pink:'#ff8a3d', gold:'#fff07c', green:'#39ff88' },
+  { id:'lime',  label:'Gece', cyan:'#7CFF6B', pink:'#39ff88', gold:'#c8ff4d', green:'#22e6ff' },
+];
+
+const root = document.documentElement;
+function applyTheme(id){
+  const t = THEMES.find(x=>x.id===id) || THEMES[0];
+  root.style.setProperty('--cyan', t.cyan);
+  root.style.setProperty('--pink', t.pink);
+  root.style.setProperty('--gold', t.gold);
+  root.style.setProperty('--green', t.green);
+  localStorage.setItem('sc26_theme', id);
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active', b.dataset.id===id));
+}
+const themeButtons = document.getElementById('themeButtons');
+THEMES.forEach(t=>{
+  const b = document.createElement('button');
+  b.className='theme-btn';
+  b.dataset.id=t.id;
+  b.innerHTML = `<span class="swatch" style="background:${t.cyan}"></span><span class="swatch" style="background:${t.gold}"></span><span style="font-size:.85rem;">${t.label}</span>`;
+  b.onclick = ()=>applyTheme(t.id);
+  themeButtons.appendChild(b);
+});
+applyTheme(localStorage.getItem('sc26_theme') || 'cyan');
+
+/* ================= FORMAT / MODE ================= */
+const formatSelect = document.getElementById('formatSelect');
+const modeSelect = document.getElementById('modeSelect');
+const brightnessRange = document.getElementById('brightnessRange');
+formatSelect.value = localStorage.getItem('sc26_format') || '24';
+modeSelect.value = localStorage.getItem('sc26_mode') || 'normal';
+brightnessRange.value = localStorage.getItem('sc26_brightness') || 100;
+
+function applyMode(){
+  const mode = modeSelect.value;
+  document.body.style.filter = mode==='night' ? 'grayscale(.15) brightness(.75)' : 'none';
+  document.querySelectorAll('.status-row, .top-row .pill.weather').forEach(el=>{
+    el.style.display = (mode==='minimal') ? 'none' : '';
+  });
+}
+function applyBrightness(){
+  document.body.style.opacity = (brightnessRange.value/100).toFixed(2);
+}
+formatSelect.onchange = ()=>{ localStorage.setItem('sc26_format', formatSelect.value); };
+modeSelect.onchange = ()=>{ localStorage.setItem('sc26_mode', modeSelect.value); applyMode(); };
+brightnessRange.oninput = ()=>{ localStorage.setItem('sc26_brightness', brightnessRange.value); applyBrightness(); };
+applyMode(); applyBrightness();
+
+/* ================= CLOCK ================= */
+const dayNames = ['PAZAR','PAZARTESİ','SALI','ÇARŞAMBA','PERŞEMBE','CUMA','CUMARTESİ'];
+const monthNames = ['OCA','ŞUB','MAR','NİS','MAY','HAZ','TEM','AĞU','EYL','EKİ','KAS','ARA'];
+
+let lastMinute = null;
+let lastCheckedMinuteKey = '';
+const hourBox = document.getElementById('hourBox');
+const minBox = document.getElementById('minBox');
+const secNum = document.getElementById('secNum');
+const ampmNum = document.getElementById('ampmNum');
+const ampmLbl = document.getElementById('ampmLbl');
+const goalOverlay = document.getElementById('goalOverlay');
+
+function pad(n){ return n.toString().padStart(2,'0'); }
+
+function triggerGoal(){
+  goalOverlay.classList.remove('show');
+  void goalOverlay.offsetWidth; // reflow to restart animation
+  goalOverlay.classList.add('show');
+}
+
+function tick(){
+  const now = new Date();
+  const h24 = now.getHours();
+  const min = now.getMinutes();
+  const sec = now.getSeconds();
+  const fmt = formatSelect.value;
+
+  let displayHour = h24;
+  if(fmt === '12'){
+    displayHour = h24 % 12;
+    if(displayHour === 0) displayHour = 12;
+  }
+
+  hourBox.textContent = pad(displayHour);
+  minBox.textContent = pad(min);
+  secNum.textContent = pad(sec);
+
+  const isPM = h24 >= 12;
+  ampmNum.textContent = isPM ? 'PM' : 'AM';
+  ampmLbl.textContent = isPM ? 'AKŞAM' : 'SABAH';
+
+  document.getElementById('dayName').textContent = dayNames[now.getDay()];
+  document.getElementById('dateStr').textContent = `${pad(now.getDate())} ${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+
+  if(lastMinute !== null && lastMinute !== min){
+    triggerGoal();
+  }
+  lastMinute = min;
+
+  checkAlarms(h24, min, sec);
+}
+/* ================= WEATHER (Konya, open-meteo) ================= */
+const weatherEmoji = document.getElementById('weatherEmoji');
+const weatherDesc = document.getElementById('weatherDesc');
+const weatherTemp = document.getElementById('weatherTemp');
+const windTxt = document.getElementById('windTxt');
+
+function codeToInfo(code){
+  if(code===0) return {e:'☀️', d:'AÇIK'};
+  if([1,2].includes(code)) return {e:'🌤️', d:'AZ BULUTLU'};
+  if(code===3) return {e:'☁️', d:'BULUTLU'};
+  if([45,48].includes(code)) return {e:'🌫️', d:'SİSLİ'};
+  if([51,53,55,56,57].includes(code)) return {e:'🌦️', d:'ÇİSENTİLİ'};
+  if([61,63,65,66,67,80,81,82].includes(code)) return {e:'🌧️', d:'YAĞMURLU'};
+  if([71,73,75,77,85,86].includes(code)) return {e:'❄️', d:'KARLI'};
+  if([95,96,99].includes(code)) return {e:'⛈️', d:'FIRTINALI'};
+  return {e:'🌡️', d:'—'};
+}
+
+async function loadWeather(){
+  try{
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.8746&longitude=32.4932&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FIstanbul');
+    const data = await res.json();
+    const cur = data.current;
+    const info = codeToInfo(cur.weather_code);
+    weatherEmoji.textContent = info.e;
+    weatherDesc.textContent = info.d;
+    weatherTemp.textContent = Math.round(cur.temperature_2m) + '°C';
+    windTxt.textContent = Math.round(cur.wind_speed_10m) + ' km/h';
+  }catch(e){
+    weatherDesc.textContent = 'BİLİNMİYOR';
+    weatherTemp.textContent = '--°C';
+    windTxt.textContent = '-- km/h';
+  }
+}
+loadWeather();
+setInterval(loadWeather, 10*60*1000);
+
+/* ================= BATTERY ================= */
+const batteryItem = document.getElementById('batteryItem');
+const batteryTxt = document.getElementById('batteryTxt');
+function setBattery(level, charging){
+  const pct = Math.round(level*100);
+  batteryTxt.textContent = pct + '%' + (charging ? ' ⚡' : '');
+  batteryItem.className = 'status-item ' + (pct <= 20 ? 'battery-low' : 'battery-good');
+}
+if(navigator.getBattery){
+  navigator.getBattery().then(bat=>{
+    setBattery(bat.level, bat.charging);
+    bat.addEventListener('levelchange', ()=>setBattery(bat.level, bat.charging));
+    bat.addEventListener('chargingchange', ()=>setBattery(bat.level, bat.charging));
+  });
+} else {
+  setBattery(0.82, false);
+}
+
+/* ================= ALARMS ================= */
+let alarms = JSON.parse(localStorage.getItem('sc26_alarms') || '[]');
+const alarmList = document.getElementById('alarmList');
+const alarmTimeInput = document.getElementById('alarmTimeInput');
+const alarmLabelInput = document.getElementById('alarmLabelInput');
+
+function saveAlarms(){ localStorage.setItem('sc26_alarms', JSON.stringify(alarms)); }
+
+function renderAlarms(){
+  alarmList.innerHTML = '';
+  if(alarms.length === 0){
+    alarmList.innerHTML = '<div style="color:var(--muted); font-size:.9rem;">Henüz alarm eklenmedi.</div>';
+    return;
+  }
+  alarms
+    .slice()
+    .sort((a,b)=>a.time.localeCompare(b.time))
+    .forEach(a=>{
+      const item = document.createElement('div');
+      item.className = 'alarm-item' + (a.enabled ? '' : ' disabled');
+      item.innerHTML = `
+        <div>
+          <div class="alarm-time">${a.time}</div>
+          <div class="alarm-label">${a.label || 'Alarm'}</div>
+        </div>
+        <div class="alarm-actions">
+          <button class="toggle ${a.enabled ? 'on' : ''}" data-id="${a.id}"><span class="knob"></span></button>
+          <button class="icon-btn" data-del="${a.id}">✕</button>
+        </div>
+      `;
+      alarmList.appendChild(item);
+    });
+
+  alarmList.querySelectorAll('.toggle').forEach(btn=>{
+    btn.onclick = ()=>{
+      const a = alarms.find(x=>x.id === btn.dataset.id);
+      a.enabled = !a.enabled;
+      saveAlarms();
+      renderAlarms();
+    };
+  });
+  alarmList.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick = ()=>{
+      alarms = alarms.filter(x=>x.id !== btn.dataset.del);
+      saveAlarms();
+      renderAlarms();
+    };
+  });
+}
+renderAlarms();
+
+document.getElementById('addAlarmBtn').onclick = ()=>{
+  if(!alarmTimeInput.value) return;
+  alarms.push({
+    id: Date.now().toString(),
+    time: alarmTimeInput.value,
+    label: alarmLabelInput.value.trim(),
+    enabled: true,
+    firedToday: false
+  });
+  saveAlarms();
+  renderAlarms();
+  alarmTimeInput.value = '';
+  alarmLabelInput.value = '';
+};
+
+function checkAlarms(h, m, s){
+  const key = `${h}:${m}`;
+  if(key === lastCheckedMinuteKey) return;
+  lastCheckedMinuteKey = key;
+  const hhmm = pad(h) + ':' + pad(m);
+  alarms.forEach(a=>{
+    if(a.enabled && a.time === hhmm){
+      ringAlarm(a);
+    }
+  });
+  if(h===0 && m===0){ alarms.forEach(a=>a.firedToday=false); }
+}
+
+/* ---- Synthesized alarm sound (Web Audio) ---- */
+let audioCtx;
+let ringInterval;
+function beep(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.value = 880;
+  gain.gain.value = 0.15;
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+  osc.stop(audioCtx.currentTime + 0.4);
+}
+
+const ringOverlay = document.getElementById('ringOverlay');
+const ringLabel = document.getElementById('ringLabel');
+
+function ringAlarm(alarm){
+  ringLabel.textContent = alarm.label || 'Alarm zamanı geldi!';
+  ringOverlay.classList.add('show');
+  beep();
+  ringInterval = setInterval(beep, 700);
+}
+
+document.getElementById('stopAlarmBtn').onclick = ()=>{
+  clearInterval(ringInterval);
+  ringOverlay.classList.remove('show');
+};
+
+/* ================= START CLOCK ================= */
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
